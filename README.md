@@ -77,3 +77,26 @@ Run tests with:
 go test ./internal/...
 ```
 ***Note: I built this project to deepen my understanding of how web communication works under the hood of APIs and frameworks.***
+
+## Verifying releases
+
+Every release tarball is signed keylessly with [Sigstore cosign](https://docs.sigstore.dev/)
+from this repository's `release.yml` GitHub Actions workflow. Each release ships a
+`.sigstore.json` bundle containing the signature, the short-lived signing certificate,
+and the Rekor transparency-log inclusion proof.
+
+To verify (example for `v1.0.0` — adjust the tag in the asset names and the identity):
+
+```sh
+# Arch/EndeavourOS: sudo pacman -S cosign
+
+cosign verify-blob \
+  --bundle gosystems-v1.0.0.tar.gz.sigstore.json \
+  --certificate-identity 'https://github.com/LD-RW/GoSystems-High-Performance-HTTP-1.1-Server/.github/workflows/release.yml@refs/tags/v1.0.0' \
+  --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
+  gosystems-v1.0.0.tar.gz
+```
+
+Successful output is `Verified OK`. This proves the tarball was produced and signed by
+this exact workflow at this exact tag; any tampering with the artifact or bundle
+breaks verification.
